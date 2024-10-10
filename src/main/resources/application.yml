@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    include: datasource
+  application:
+    name: ${APPLICATION_NAME}
+
+server:
+  servlet:
+    context-path: /api
+  port: 8080
