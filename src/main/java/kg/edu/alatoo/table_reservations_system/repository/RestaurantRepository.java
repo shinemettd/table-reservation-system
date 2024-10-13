@@ -13,13 +13,24 @@ import java.util.Set;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
-    @Query("SELECT DISTINCT r FROM Restaurant r WHERE r.deletionDate IS NULL")
-    Optional<Set<Restaurant>> findAllNotDeleted();
+    @Query("SELECT DISTINCT r FROM Restaurant r")
+    Optional<Set<Restaurant>> findAllRestaurants();
 
-    Optional<Restaurant> findAllByIdAndDeletionDateIsNull(Long id);
+    @Query("SELECT DISTINCT r FROM Restaurant r WHERE r.deletionDate IS NULL")
+    Optional<Set<Restaurant>> findAllRestaurantsNotDeleted();
+
+    @Query("SELECT r FROM Restaurant r WHERE r.id = :id")
+    Optional<Restaurant> findById(@Param("id") Long id);
+
+    Optional<Restaurant> findByIdAndDeletionDateIsNull(Long id);
+
+    @Query("SELECT DISTINCT r FROM Restaurant r WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Optional<Set<Restaurant>> findAllByLikeName(@Param("name") String name);
 
     @Query("SELECT DISTINCT r FROM Restaurant r WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :name, '%')) AND r.deletionDate IS NULL")
     Optional<Set<Restaurant>> findAllByLikeNameNotDeleted(@Param("name") String name);
+
+    Optional<Restaurant> findByName(String name);
 
     Optional<Restaurant> findByNameAndDeletionDateIsNull(String name);
 

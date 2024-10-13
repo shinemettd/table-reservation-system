@@ -1,12 +1,12 @@
 package kg.edu.alatoo.table_reservations_system.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -14,16 +14,22 @@ import java.time.LocalDateTime;
 @Data
 @MappedSuperclass
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity implements Serializable  {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long id;
 
     @CreatedDate
-    @Column(name = "CREATION_DATE", updatable = false)
+    @Column(name = "CREATED_DATE", nullable = false, updatable = false)
     LocalDateTime creationDate;
 
-    @Column(name = "DELETION_DATE")
+    @LastModifiedDate
+    @Column(name = "LAST_EDITED_DATE")
+    LocalDateTime editionDate;
+
+    @Column(name = "DELETED_DATE")
     LocalDateTime deletionDate;
 
 }

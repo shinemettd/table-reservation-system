@@ -24,8 +24,8 @@ public class RestaurantServiceImpl implements RestaurantService {
     RestaurantMapper mapper;
 
     @Override
-    public Set<RestaurantDTO> getAllAvailable() {
-        return repository.findAllNotDeleted().orElseThrow()
+    public Set<RestaurantDTO> getAll() {
+        return repository.findAllRestaurantsNotDeleted().orElseThrow()
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toSet());
@@ -65,7 +65,8 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     @Transactional
     public void softDeleteById(Long id) {
-        var r = repository.findById(id).orElseThrow();
-        r.setDeletionDate(LocalDateTime.now());
+        var restaurant = repository.findById(id).orElseThrow();
+        restaurant.setDeletionDate(LocalDateTime.now());
     }
+
 }
