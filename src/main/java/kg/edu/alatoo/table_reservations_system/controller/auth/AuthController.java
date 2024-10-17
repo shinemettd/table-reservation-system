@@ -1,6 +1,5 @@
-package kg.edu.alatoo.table_reservations_system.controller;
+package kg.edu.alatoo.table_reservations_system.controller.auth;
 
-import jakarta.validation.Valid;
 import kg.edu.alatoo.table_reservations_system.payload.user.UserDTO;
 import kg.edu.alatoo.table_reservations_system.payload.user.UserLoginRequestDTO;
 import kg.edu.alatoo.table_reservations_system.payload.user.UserLoginResponseDTO;
@@ -15,19 +14,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AuthController {
+public final class AuthController implements AuthControllerDocumentation {
 
     UserService service;
 
-    @PostMapping("/register")
-    ResponseEntity<UserDTO> register(@Valid @RequestBody UserRegisterRequestDTO dto) {
+    @Override
+    public ResponseEntity<UserDTO> register(UserRegisterRequestDTO dto) {
         return new ResponseEntity<>(service.register(dto), HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
-    ResponseEntity<UserLoginResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO dto) {
+    @Override
+    public ResponseEntity<UserLoginResponseDTO> login(UserLoginRequestDTO dto) {
         return new ResponseEntity<>(service.login(dto), HttpStatus.OK);
     }
 

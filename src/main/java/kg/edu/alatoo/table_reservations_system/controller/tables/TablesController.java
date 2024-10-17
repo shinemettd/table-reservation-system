@@ -1,4 +1,4 @@
-package kg.edu.alatoo.table_reservations_system.controller;
+package kg.edu.alatoo.table_reservations_system.controller.tables;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/tables")
-public class TablesController {
+public final class TablesController implements TablesControllerDocumentation {
 
     @GetMapping("/all")
     public String getAll() {

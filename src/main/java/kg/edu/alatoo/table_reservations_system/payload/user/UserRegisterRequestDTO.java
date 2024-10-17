@@ -1,15 +1,15 @@
 package kg.edu.alatoo.table_reservations_system.payload.user;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record UserRegisterRequestDTO (
-        @NotNull(message = "Username is empty")
+        @NotBlank(message = "Username is empty")
         String username,
-        @NotNull(message = "Password is empty")
+        @NotBlank(message = "Password is empty")
         String password,
-        @NotNull(message = "Full name is empty")
+        @NotBlank(message = "Full name is empty")
         String fullName,
-        @NotNull(message = "Phone number is empty")
+        @NotBlank(message = "Phone number is empty")
         String phoneNumber
 ) {
 }

@@ -1,5 +1,9 @@
 package kg.edu.alatoo.table_reservations_system.service.impl;
 
+import kg.edu.alatoo.table_reservations_system.entity.Restaurant;
+import kg.edu.alatoo.table_reservations_system.enums.Role;
+import kg.edu.alatoo.table_reservations_system.exceptions.NoPermissionException;
+import kg.edu.alatoo.table_reservations_system.exceptions.NotFoundException;
 import kg.edu.alatoo.table_reservations_system.mapper.RestaurantMapper;
 import kg.edu.alatoo.table_reservations_system.payload.RestaurantDTO;
 import kg.edu.alatoo.table_reservations_system.repository.RestaurantRepository;
@@ -14,6 +18,8 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static kg.edu.alatoo.table_reservations_system.service.impl.UserServiceImpl.getCurrentUserRole;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -25,48 +31,102 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public Set<RestaurantDTO> getAll() {
-        return repository.findAllRestaurantsNotDeleted().orElseThrow()
-                .stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toSet());
+        Role currentUserRole = getCurrentUserRole();
+        return switch(currentUserRole) {
+            case ADMIN -> repository.findAllRestaurants().orElseThrow(NotFoundException::new)
+                    .stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toSet());
+            case null, default -> repository.findAllRestaurantsNotDeleted().orElseThrow(NotFoundException::new)
+                    .stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toSet());
+        };
     }
 
     @Override
     public RestaurantDTO getById(Long id) {
-        return mapper.toDto(repository.findById(id).orElseThrow());
+        Role currentUserRole = getCurrentUserRole();
+        return switch(currentUserRole)  {
+            case ADMIN -> mapper.toDto(repository.findById(id).orElseThrow(NotFoundException::new));
+            case null, default -> mapper.toDto(repository.findByIdAndDeletionDateIsNull(id).orElseThrow(NotFoundException::new));
+        };
+    }
+
+    public Restaurant getEntityById(Long id) {
+        Role currentUserRole = getCurrentUserRole();
+        return switch(currentUserRole)  {
+            case ADMIN -> repository.findById(id).orElseThrow(() -> new NotFoundException("Restaurant not found"));
+            case null, default -> repository.findByIdAndDeletionDateIsNull(id).orElseThrow(() -> new NotFoundException("Restaurant not found"));
+        };
     }
 
     @Override
     public Set<RestaurantDTO> searchByName(String name) {
-        return repository.findAllByLikeNameNotDeleted(name).orElseThrow()
-                .stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toSet());
+        Role currentUserRole = getCurrentUserRole();
+        return switch (currentUserRole) {
+            case ADMIN -> repository.findAllByLikeName(name).orElseThrow(NotFoundException::new)
+                    .stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toSet());
+            case null, default -> repository.findAllByLikeNameNotDeleted(name).orElseThrow(NotFoundException::new)
+                    .stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toSet());
+        };
     }
 
     @Override
-    public RestaurantDTO getByName(String name) {
-        return mapper.toDto(repository.findByNameAndDeletionDateIsNull(name).orElseThrow());
+    public Set<RestaurantDTO> getByName(String name) {
+        Role currentUserRole = getCurrentUserRole();
+        return switch (currentUserRole) {
+            case ADMIN -> repository.findAllByName(name).orElseThrow(NotFoundException::new)
+                    .stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toSet());
+            case null, default -> repository.findAllByNameAndDeletionDateIsNull(name).orElseThrow(NotFoundException::new)
+                    .stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toSet());
+        };
     }
 
     @Override
     public RestaurantDTO create(RestaurantDTO dto) {
-        return mapper.toDto(repository.save(mapper.toEntity(dto)));
+        Role currentUserRole = getCurrentUserRole();
+        return switch (currentUserRole) {
+            case ADMIN -> mapper.toDto(repository.save(mapper.toEntity(dto)));
+            case null, default -> throw new NoPermissionException();
+        };
     }
 
     @Override
     @Transactional
     public RestaurantDTO edit(RestaurantDTO dto) {
-        var restaurant = repository.findById(dto.id()).orElseThrow();
-        restaurant = mapper.toEntity(dto);
-        return mapper.toDto(restaurant);
+        Role currentUserRole = getCurrentUserRole();
+        return switch (currentUserRole) {
+            case ADMIN -> {
+                var restaurant = repository.findById(dto.id()).orElseThrow(NotFoundException::new);
+                restaurant = mapper.toEntity(dto);
+                yield mapper.toDto(restaurant);
+            }
+            case null, default -> throw new NoPermissionException();
+        };
     }
 
     @Override
     @Transactional
     public void softDeleteById(Long id) {
-        var restaurant = repository.findById(id).orElseThrow();
-        restaurant.setDeletionDate(LocalDateTime.now());
+        Role currentUserRole = getCurrentUserRole();
+        var deleteDate = LocalDateTime.now();
+        switch (currentUserRole) {
+            case ADMIN -> {
+                var restaurant = repository.findById(id).orElseThrow(NotFoundException::new);
+                restaurant.setDeletionDate(deleteDate);
+                restaurant.getTables().forEach(e -> e.setDeletionDate(deleteDate));
+            }
+            case null, default -> throw new NoPermissionException();
+        };
     }
 
 }

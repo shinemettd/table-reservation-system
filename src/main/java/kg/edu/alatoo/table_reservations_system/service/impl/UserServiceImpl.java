@@ -2,10 +2,7 @@ package kg.edu.alatoo.table_reservations_system.service.impl;
 
 import kg.edu.alatoo.table_reservations_system.entity.User;
 import kg.edu.alatoo.table_reservations_system.enums.Role;
-import kg.edu.alatoo.table_reservations_system.exceptions.AuthException;
-import kg.edu.alatoo.table_reservations_system.exceptions.NotFoundException;
-import kg.edu.alatoo.table_reservations_system.exceptions.PhoneNumberAlreadyTakenException;
-import kg.edu.alatoo.table_reservations_system.exceptions.UsernameAlreadyTakenException;
+import kg.edu.alatoo.table_reservations_system.exceptions.*;
 import kg.edu.alatoo.table_reservations_system.mapper.UserMapper;
 import kg.edu.alatoo.table_reservations_system.payload.user.*;
 import kg.edu.alatoo.table_reservations_system.repository.UserRepository;
@@ -54,6 +51,7 @@ public class UserServiceImpl implements UserService {
         User user = mapper.toEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.password()));
         user.setRole(Role.CONSUMER);
+
         try {
             repository.save(user);
         } catch (Exception e) {
@@ -80,22 +78,49 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO update(UserUpdateRequestDTO dto) {
-        this.throwIfUserNotExists(dto.id());
-        User user = mapper.toEntity(dto);
+    public UserDTO selfUpdate(UserUpdateRequestDTO dto) {
+        User user = getCurrentUser();
+        if (user == null) throw new NoPermissionException("Invalid user session");
+        this.moveNonNullValuesToEntityFromUpdateDTO(user, dto);
         return mapper.toDTO(user);
     }
 
     @Override
     @Transactional
-    public void delete(Long id) {
-        User user = repository.findById(id).
-                orElseThrow(() -> new NotFoundException("User not found"));
-        user.setDeletionDate(LocalDateTime.now());
+    public UserDTO update(Long id, UserUpdateRequestDTO dto) {
+        Role currentUserRole = getCurrentUserRole();
+        return switch (currentUserRole) {
+            case ADMIN -> {
+                User user = repository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+                this.moveNonNullValuesToEntityFromUpdateDTO(user, dto);
+                yield mapper.toDTO(user);
+            }
+            case null, default -> throw new NoPermissionException();
+        };
+    }
+
+    private void moveNonNullValuesToEntityFromUpdateDTO(User user, UserUpdateRequestDTO dto) {
+        if (dto.username() != null) user.setUsername(dto.username());
+        if (dto.password() != null) user.setPassword(dto.password());
+        if (dto.fullName() != null) user.setFullName(dto.fullName());
+        if (dto.phoneNumber() != null) user.setPhoneNumber(dto.phoneNumber());
     }
 
     @Override
-    public User getCurrentUser() {
+    @Transactional
+    public void softDelete(Long id) {
+        Role currentUserRole = getCurrentUserRole();
+        switch (currentUserRole) {
+            case ADMIN -> {
+                User user = repository.findById(id).
+                        orElseThrow(() -> new NotFoundException("User not found"));
+                user.setDeletionDate(LocalDateTime.now());
+            }
+            case null, default -> throw new NoPermissionException();
+        };
+    }
+
+    public static User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !(auth.getPrincipal() instanceof String)) {
             Object principal = auth.getPrincipal();
@@ -106,14 +131,9 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    @Override
-    public Role getCurrentUserRole() {
-        User user = this.getCurrentUser();
+    public static Role getCurrentUserRole() {
+        User user = getCurrentUser();
         return user != null ? user.getRole() : null;
     }
 
-    private void throwIfUserNotExists(Long id) {
-        repository.findById(id)
-                .orElseThrow(() -> new NotFoundException(format("User not found with id %s", id)));
-    }
 }

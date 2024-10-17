@@ -50,4 +50,5 @@ public class Handler {
     private <E extends Exception> ResponseEntity<ErrorResponseDTO> createResponseEntityWithException(E e) {
         return new ResponseEntity<>(this.mapExceptionToDTO(e), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 }
