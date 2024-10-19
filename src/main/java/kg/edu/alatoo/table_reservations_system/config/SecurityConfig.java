@@ -28,13 +28,18 @@ public class SecurityConfig {
 
     AuthenticationProvider authenticationProvider;
 
+    private static final String[] AUTH_ROUTES = {"/auth/register", "/auth/login"};
+
+    private static final String[] SWAGGER_ROUTES = {"/swagger-ui/**", "/v3/api-docs/**"};
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**"))
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_ROUTES).anonymous()
+                        .requestMatchers(SWAGGER_ROUTES).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

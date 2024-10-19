@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kg.edu.alatoo.table_reservations_system.payload.RestaurantDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantCreateRequestDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantEditRequestDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public sealed interface RestaurantControllerDocumentation permits RestaurantCont
     })
     ResponseEntity<Set<RestaurantDTO>> getAll();
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     @Operation(summary = "Get restaurant by ID", description = "Returns a restaurant by its unique ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success get"),
@@ -34,7 +36,7 @@ public sealed interface RestaurantControllerDocumentation permits RestaurantCont
             @Parameter(description = "Unique identifier of the restaurant", required = true)
             @PathVariable("id") Long id);
 
-    @GetMapping("/{name}")
+    @GetMapping("/name/{name}")
     @Operation(summary = "Get restaurants by exact name", description = "Returns a set of restaurants by their name")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success get"),
@@ -61,7 +63,7 @@ public sealed interface RestaurantControllerDocumentation permits RestaurantCont
             @ApiResponse(responseCode = "403", description = "No permission for this action")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<RestaurantDTO> create(@RequestBody RestaurantDTO dto);
+    ResponseEntity<RestaurantDTO> create(@RequestBody RestaurantCreateRequestDTO dto);
 
     @PutMapping("/edit/{id}")
     @Operation(summary = "Edit an existing restaurant", description = "Edits the details of an existing restaurant")
@@ -73,8 +75,7 @@ public sealed interface RestaurantControllerDocumentation permits RestaurantCont
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<RestaurantDTO> edit(
             @Parameter(description = "ID of the restaurant to edit", required = true)
-            @PathVariable("id") Long id, @RequestBody RestaurantDTO dto);
-
+            @PathVariable("id") Long id, @RequestBody RestaurantEditRequestDTO dto);
 
     @DeleteMapping("/delete/{id}")
     @Operation(summary = "Delete a restaurant with all tables", description = "Soft deletes a restaurant and all its tables by its ID and")

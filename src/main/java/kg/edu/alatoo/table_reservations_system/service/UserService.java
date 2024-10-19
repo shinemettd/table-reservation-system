@@ -1,5 +1,6 @@
 package kg.edu.alatoo.table_reservations_system.service;
 
+import kg.edu.alatoo.table_reservations_system.enums.Role;
 import kg.edu.alatoo.table_reservations_system.payload.user.*;
 
 public interface UserService {
@@ -7,5 +8,6 @@ public interface UserService {
     UserLoginResponseDTO login(UserLoginRequestDTO dto);
     UserDTO selfUpdate(UserUpdateRequestDTO dto);
     UserDTO update(Long id, UserUpdateRequestDTO dto);
+    UserDTO updateUserRole(Long userId, Role role);
     void softDelete(Long id);
 }

@@ -2,10 +2,13 @@ package kg.edu.alatoo.table_reservations_system.service.impl;
 
 import kg.edu.alatoo.table_reservations_system.entity.Restaurant;
 import kg.edu.alatoo.table_reservations_system.enums.Role;
+import kg.edu.alatoo.table_reservations_system.exceptions.DeletedEntityException;
 import kg.edu.alatoo.table_reservations_system.exceptions.NoPermissionException;
 import kg.edu.alatoo.table_reservations_system.exceptions.NotFoundException;
 import kg.edu.alatoo.table_reservations_system.mapper.RestaurantMapper;
-import kg.edu.alatoo.table_reservations_system.payload.RestaurantDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantCreateRequestDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantEditRequestDTO;
 import kg.edu.alatoo.table_reservations_system.repository.RestaurantRepository;
 import kg.edu.alatoo.table_reservations_system.service.RestaurantService;
 import lombok.AccessLevel;
@@ -33,13 +36,16 @@ public class RestaurantServiceImpl implements RestaurantService {
     public Set<RestaurantDTO> getAll() {
         Role currentUserRole = getCurrentUserRole();
         return switch(currentUserRole) {
-            case ADMIN -> repository.findAllRestaurants().orElseThrow(NotFoundException::new)
+            case ADMIN -> repository.findAllRestaurantsWithAllTables().orElseThrow(NotFoundException::new)
                     .stream()
-                    .map(mapper::toDto)
+                    .map(mapper::toDTO)
                     .collect(Collectors.toSet());
             case null, default -> repository.findAllRestaurantsNotDeleted().orElseThrow(NotFoundException::new)
                     .stream()
-                    .map(mapper::toDto)
+                    .peek(r -> r.setTables(r.getTables().stream()
+                            .filter(t -> t.getDeletionDate() == null)
+                            .collect(Collectors.toSet())))
+                    .map(mapper::toDTO)
                     .collect(Collectors.toSet());
         };
     }
@@ -48,8 +54,14 @@ public class RestaurantServiceImpl implements RestaurantService {
     public RestaurantDTO getById(Long id) {
         Role currentUserRole = getCurrentUserRole();
         return switch(currentUserRole)  {
-            case ADMIN -> mapper.toDto(repository.findById(id).orElseThrow(NotFoundException::new));
-            case null, default -> mapper.toDto(repository.findByIdAndDeletionDateIsNull(id).orElseThrow(NotFoundException::new));
+            case ADMIN -> mapper.toDTO(repository.findById(id).orElseThrow(NotFoundException::new));
+            case null, default -> {
+                var restaurant = repository.findByIdAndDeletionDateIsNull(id).orElseThrow(NotFoundException::new);
+                restaurant.setTables(restaurant.getTables().stream()
+                        .filter(table -> table.getDeletionDate() == null)
+                        .collect(Collectors.toSet()));
+                yield mapper.toDTO(restaurant);
+            }
         };
     }
 
@@ -67,11 +79,14 @@ public class RestaurantServiceImpl implements RestaurantService {
         return switch (currentUserRole) {
             case ADMIN -> repository.findAllByLikeName(name).orElseThrow(NotFoundException::new)
                     .stream()
-                    .map(mapper::toDto)
+                    .map(mapper::toDTO)
                     .collect(Collectors.toSet());
             case null, default -> repository.findAllByLikeNameNotDeleted(name).orElseThrow(NotFoundException::new)
                     .stream()
-                    .map(mapper::toDto)
+                    .peek(r -> r.setTables(r.getTables().stream()
+                            .filter(t -> t.getDeletionDate() == null)
+                            .collect(Collectors.toSet())))
+                    .map(mapper::toDTO)
                     .collect(Collectors.toSet());
         };
     }
@@ -82,33 +97,37 @@ public class RestaurantServiceImpl implements RestaurantService {
         return switch (currentUserRole) {
             case ADMIN -> repository.findAllByName(name).orElseThrow(NotFoundException::new)
                     .stream()
-                    .map(mapper::toDto)
+                    .map(mapper::toDTO)
                     .collect(Collectors.toSet());
             case null, default -> repository.findAllByNameAndDeletionDateIsNull(name).orElseThrow(NotFoundException::new)
                     .stream()
-                    .map(mapper::toDto)
+                    .peek(r -> r.setTables(r.getTables().stream()
+                            .filter(t -> t.getDeletionDate() == null)
+                            .collect(Collectors.toSet())))
+                    .map(mapper::toDTO)
                     .collect(Collectors.toSet());
         };
     }
 
     @Override
-    public RestaurantDTO create(RestaurantDTO dto) {
+    public RestaurantDTO create(RestaurantCreateRequestDTO dto) {
         Role currentUserRole = getCurrentUserRole();
         return switch (currentUserRole) {
-            case ADMIN -> mapper.toDto(repository.save(mapper.toEntity(dto)));
+            case ADMIN -> mapper.toDTO(repository.save(mapper.toEntity(dto)));
             case null, default -> throw new NoPermissionException();
         };
     }
 
     @Override
     @Transactional
-    public RestaurantDTO edit(RestaurantDTO dto) {
+    public RestaurantDTO edit(Long id, RestaurantEditRequestDTO dto) {
         Role currentUserRole = getCurrentUserRole();
         return switch (currentUserRole) {
             case ADMIN -> {
-                var restaurant = repository.findById(dto.id()).orElseThrow(NotFoundException::new);
-                restaurant = mapper.toEntity(dto);
-                yield mapper.toDto(restaurant);
+                var restaurant = repository.findById(id).orElseThrow(NotFoundException::new);
+                if (restaurant.getDeletionDate() == null) throw new DeletedEntityException();
+                restaurant.setName(dto.name());
+                yield mapper.toDTO(restaurant);
             }
             case null, default -> throw new NoPermissionException();
         };
@@ -122,6 +141,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         switch (currentUserRole) {
             case ADMIN -> {
                 var restaurant = repository.findById(id).orElseThrow(NotFoundException::new);
+                if (restaurant.getDeletionDate() == null) throw new DeletedEntityException();
                 restaurant.setDeletionDate(deleteDate);
                 restaurant.getTables().forEach(e -> e.setDeletionDate(deleteDate));
             }

@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
         User user = repository.findByLogin(dto.login())
                 .orElseThrow(() -> new NotFoundException("User does not exists"));
         if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
-            throw new AuthException("Incorrect password!");
+            throw new AuthException("Incorrect newPassword!");
         }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -99,11 +99,24 @@ public class UserServiceImpl implements UserService {
         };
     }
 
+    @Override
+    public UserDTO updateUserRole(Long userId, Role role) {
+        Role currentUserRole = getCurrentUserRole();
+        return switch (currentUserRole) {
+            case ADMIN -> {
+                User user = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+                user.setRole(role);
+                yield mapper.toDTO(user);
+            }
+            case null, default -> throw new NoPermissionException();
+        };
+    }
+
     private void moveNonNullValuesToEntityFromUpdateDTO(User user, UserUpdateRequestDTO dto) {
-        if (dto.username() != null) user.setUsername(dto.username());
-        if (dto.password() != null) user.setPassword(dto.password());
-        if (dto.fullName() != null) user.setFullName(dto.fullName());
-        if (dto.phoneNumber() != null) user.setPhoneNumber(dto.phoneNumber());
+        if (dto.newUsername() != null) user.setUsername(dto.newUsername());
+        if (dto.newPassword() != null) user.setPassword(dto.newPassword());
+        if (dto.newFullName() != null) user.setFullName(dto.newFullName());
+        if (dto.newPhoneNumber() != null) user.setPhoneNumber(dto.newPhoneNumber());
     }
 
     @Override

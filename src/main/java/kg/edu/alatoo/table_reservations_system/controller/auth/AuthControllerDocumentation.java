@@ -1,6 +1,8 @@
 package kg.edu.alatoo.table_reservations_system.controller.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +24,7 @@ public sealed interface AuthControllerDocumentation permits AuthController {
     @Operation(summary = "Register/Sign-up", description = "Default user register")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success register"),
-            @ApiResponse(responseCode = "400", description = "Not valid values for registration"),
-            @ApiResponse(responseCode = "400", description = "Already taken unique values (username or phone number)")
+            @ApiResponse(responseCode = "400", description = "Not valid values for registration or already taken unique values"),
     })
     ResponseEntity<UserDTO> register(@Valid @RequestBody UserRegisterRequestDTO dto);
 
@@ -31,7 +32,7 @@ public sealed interface AuthControllerDocumentation permits AuthController {
     @Operation(summary = "Login/Sign-in", description = "Default login with JWT token receive")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success login"),
-            @ApiResponse(responseCode = "400", description = "Wrong password"),
+            @ApiResponse(responseCode = "400", description = "Wrong newPassword"),
             @ApiResponse(responseCode = "404", description = "User does not exist")
     })
     ResponseEntity<UserLoginResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO dto);

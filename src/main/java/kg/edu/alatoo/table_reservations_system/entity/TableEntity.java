@@ -3,16 +3,17 @@ package kg.edu.alatoo.table_reservations_system.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.proxy.HibernateProxy;
 
-@Data
+import java.util.Objects;
+
+@Getter
+@Setter
 @Entity
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@Table(name = "TABLES", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"RESTAURANT_ID", "TABLE_NUMBER"})
-})
+@Table(name = "TABLES")
+@ToString(exclude = {"restaurant"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @SequenceGenerator(name = "TABLE_SEQUENCE", sequenceName = "TABLE_SEQ")
 public class TableEntity extends BaseEntity {

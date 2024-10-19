@@ -1,7 +1,9 @@
 package kg.edu.alatoo.table_reservations_system.exceptions.handle;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import kg.edu.alatoo.table_reservations_system.exceptions.*;
 import kg.edu.alatoo.table_reservations_system.payload.errors.ErrorResponseDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
@@ -12,12 +14,26 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @ControllerAdvice
 public class Handler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponseDTO> handleBaseExceptions(BaseException e) {
+        log.error(e.getMessage(), e);
         return this.createResponseEntityWithBaseException(e);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDTO> handleValidationMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.error(e.getMessage(), e);
+        return this.createResponseEntityWithMethodArgumentNotValidException(e);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleException(Exception e) {
+        log.error(e.getMessage(), e);
+        return createResponseEntityWithException(e);
     }
 
     private <E extends BaseException> ErrorResponseDTO mapBaseExceptionToDTO(E e) {
@@ -28,19 +44,9 @@ public class Handler {
         return new ResponseEntity<>(this.mapBaseExceptionToDTO(e), e.getHttpStatus());
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> handleValidationMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        return this.createResponseEntityWithMethodArgumentNotValidException(e);
-    }
-
     private ResponseEntity<ErrorResponseDTO> createResponseEntityWithMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         List<String> errors = e.getBindingResult().getAllErrors().stream().map(ObjectError::getDefaultMessage).toList();
         return new ResponseEntity<>(new ErrorResponseDTO(errors, LocalDateTime.now(), e.getStatusCode().value()), e.getStatusCode());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleException(Exception e) {
-        return createResponseEntityWithException(e);
     }
 
     private <E extends Exception> ErrorResponseDTO mapExceptionToDTO(E e) {

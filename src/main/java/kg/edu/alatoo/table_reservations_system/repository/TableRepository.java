@@ -24,6 +24,10 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
     @Query("SELECT DISTINCT t FROM TableEntity t WHERE t.deletionDate IS NULL AND t.restaurant.id = :restaurantId")
     Optional<Set<TableEntity>> findAllByRestaurantIdNonDeleted(@Param("restaurantId") Long id);
 
+    @Query("SELECT t FROM TableEntity t WHERE t.restaurant.id = :restaurantId AND t.number = :tableNumber")
+    Optional<TableEntity> findByRestaurantIdAndTableNumber(@Param("restaurantId") Long restaurantId, @Param("tableNumber") Long tableNumber);
 
+    @Query("SELECT t FROM TableEntity t WHERE t.restaurant.id = :restaurantId AND t.number = :tableNumber AND t.deletionDate IS NULL")
+    Optional<TableEntity> findByRestaurantIdAndTableNumberNonDeleted(@Param("restaurantId") Long restaurantId, @Param("tableNumber") Long tableNumber);
 
 }

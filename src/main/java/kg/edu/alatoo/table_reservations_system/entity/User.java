@@ -2,11 +2,8 @@ package kg.edu.alatoo.table_reservations_system.entity;
 
 import jakarta.persistence.*;
 import kg.edu.alatoo.table_reservations_system.enums.Role;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,10 +11,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
+@ToString
 @Table(name = "USERS")
-@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @SequenceGenerator(name = "USERS_SEQUENCE", sequenceName = "USERS_SEQ")
 public class User extends BaseEntity implements UserDetails {

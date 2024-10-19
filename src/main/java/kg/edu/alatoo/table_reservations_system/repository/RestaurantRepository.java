@@ -1,7 +1,6 @@
 package kg.edu.alatoo.table_reservations_system.repository;
 
 import kg.edu.alatoo.table_reservations_system.entity.Restaurant;
-import org.hibernate.annotations.Parameter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,9 +13,10 @@ import java.util.Set;
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
     @Query("SELECT DISTINCT r FROM Restaurant r")
-    Optional<Set<Restaurant>> findAllRestaurants();
+    Optional<Set<Restaurant>> findAllRestaurantsWithAllTables();
 
-    @Query("SELECT DISTINCT r FROM Restaurant r WHERE r.deletionDate IS NULL")
+    @Query("SELECT DISTINCT r FROM Restaurant r " +
+            "WHERE r.deletionDate IS NULL")
     Optional<Set<Restaurant>> findAllRestaurantsNotDeleted();
 
     @Query("SELECT r FROM Restaurant r WHERE r.id = :id")

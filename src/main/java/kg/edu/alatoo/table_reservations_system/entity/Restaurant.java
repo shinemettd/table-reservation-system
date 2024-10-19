@@ -1,17 +1,15 @@
 package kg.edu.alatoo.table_reservations_system.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "RESTAURANT")
-@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @SequenceGenerator(name = "RESTAURANT_SEQUENCE", sequenceName = "RESTAURANT_SEQ")
 public class Restaurant extends BaseEntity {

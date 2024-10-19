@@ -1,12 +1,14 @@
 package kg.edu.alatoo.table_reservations_system.controller.restaurant;
 
-import kg.edu.alatoo.table_reservations_system.payload.RestaurantDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantCreateRequestDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantDTO;
+import kg.edu.alatoo.table_reservations_system.payload.restaurant.RestaurantEditRequestDTO;
 import kg.edu.alatoo.table_reservations_system.service.RestaurantService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -30,28 +32,28 @@ public final class RestaurantController implements RestaurantControllerDocumenta
 
     @Override
     public ResponseEntity<Set<RestaurantDTO>> getByName(String name) {
-        return ResponseEntity.ok(service.getByName(name));
+        return new ResponseEntity<>(service.getByName(name), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<Set<RestaurantDTO>> searchByName(String name) {
-        return ResponseEntity.ok(service.searchByName(name));
+        return new ResponseEntity<>(service.searchByName(name), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<RestaurantDTO> create(RestaurantDTO dto) {
-        return ResponseEntity.ok(service.create(dto));
+    public ResponseEntity<RestaurantDTO> create(RestaurantCreateRequestDTO dto) {
+        return new ResponseEntity<>(service.create(dto), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<RestaurantDTO> edit(Long id, RestaurantDTO dto) {
-        return ResponseEntity.ok(service.edit(dto));
+    public ResponseEntity<RestaurantDTO> edit(Long id, RestaurantEditRequestDTO dto) {
+        return new ResponseEntity<>(service.edit(id, dto), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<Void> softDeleteById(Long id) {
         service.softDeleteById(id);
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }
