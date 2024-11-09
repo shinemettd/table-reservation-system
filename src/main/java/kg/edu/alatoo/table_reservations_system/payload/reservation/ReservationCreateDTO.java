@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 public record ReservationCreateDTO(
         Long userId,
         Long tableId,
-        Long peopleCount,
         LocalDateTime reservationStartTime,
         LocalDateTime reservationEndTime
 ) {
