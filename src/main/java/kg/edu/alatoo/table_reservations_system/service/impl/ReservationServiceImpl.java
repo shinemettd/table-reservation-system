@@ -21,6 +21,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -127,7 +128,8 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public void deleteLongReservationsFromPreviousDayWithoutEndDate() {
-        var reservations = repository.getReservationFromPreviousDayWhereEndTimeIsNull();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        var reservations = repository.getReservationFromDayWhereEndTimeIsNull(yesterday);
         reservations.forEach(r -> r.setDeletionDate(LocalDateTime.now()));
     }
 

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
@@ -29,8 +30,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     Set<Reservation> getReservationsByAfterCurrentDate();
 
     @Query("SELECT r FROM Reservation r WHERE r.reservationEndTime IS NULL " +
-            "AND r.reservationStartTime >= CURRENT_DATE - 1 " +
+            "AND r.reservationStartTime >= :day " +
             "AND r.deletionDate IS NULL")
-    Set<Reservation> getReservationFromPreviousDayWhereEndTimeIsNull();
+    Set<Reservation> getReservationFromDayWhereEndTimeIsNull(@Param("day") LocalDate day);
 
 }
