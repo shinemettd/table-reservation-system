@@ -1,6 +1,5 @@
 package kg.edu.alatoo.table_reservations_system.exceptions.handle;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import kg.edu.alatoo.table_reservations_system.exceptions.*;
 import kg.edu.alatoo.table_reservations_system.payload.errors.ErrorResponseDTO;
 import lombok.extern.slf4j.Slf4j;

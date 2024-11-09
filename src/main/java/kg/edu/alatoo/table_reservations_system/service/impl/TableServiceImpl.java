@@ -66,6 +66,12 @@ public class TableServiceImpl implements TableService {
         };
     }
 
+    @Override
+    public TableEntity getEntityById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(NotFoundException::new);
+    }
+
     /**
      * First, search for a restaurant using the specified ID.
      * Then, validate the set created from the combination of table number and capacity.

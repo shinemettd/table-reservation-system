@@ -13,6 +13,9 @@ jwt:
   secret: ${JWT_SECRET_KEY}
   expiration: ${JWT_EXPIRATION_MILLIS:3600000}
 
+job:
+  enabled: true
+
 logging:
   level:
     org:

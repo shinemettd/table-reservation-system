@@ -133,6 +133,12 @@ public class UserServiceImpl implements UserService {
         };
     }
 
+    @Override
+    public User getEntityById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(NotFoundException::new);
+    }
+
     public static User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !(auth.getPrincipal() instanceof String)) {
